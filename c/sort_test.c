@@ -120,14 +120,108 @@ void mergesort(int v[], int n)
 	}
 }
 
+int partition(int v[], int left, int right)
+{
+    int pivot = v[left];
+    int l = left;
+    int r = right;
+    int middle;
+    while(l < r){
+        while(v[l] <= pivot && l <= right) l++;
+        while(v[r] > pivot && r >= left) r--;
+        if(l < r) swap(v, l, r);
+    }
+    middle = r;
+    swap(v, left, middle);
+    return middle;
+}
+
+void quicksort2(int v[], int left, int right)
+{
+    int middle;
+    if(left < right){
+        middle = partition(v, left, right);
+        quicksort2(v, left, middle-1);
+        quicksort2(v, middle+1, right);
+    }
+}
+
+int select = 0;
+void selection(int v[], int left, int right, int k)
+{
+    //int select;
+    int middle;
+    if(left == right){
+        select = left;
+        //printf("select=%d\n", select);
+        return select;
+    }else{
+        middle = partition(v, left, right);
+        //printf("middle=%d\n", v[middle]);
+        if(middle-left+1 >= k) {
+            selection(v, left, middle, k);
+        }else{
+            selection(v, middle+1, right, k-(middle-left+1));
+        }
+    }
+    return 0;
+}
+
+int majority(int x[], int n){
+    int c, m, i, r, cnt;
+    c = x[0];
+    m = 1;
+    for(i=1; i<n; i++){
+        if(m == 0){
+            c = x[i];
+            m = 1;
+        }else{
+            if(c == x[i]){
+                m++;
+            }else{
+                m--;
+            }
+        }
+    }
+    if(m == 0){
+        r = -1;
+    }else{
+        cnt = 0;
+        for(i=0; i<n; i++){
+            if(x[i]==c) cnt++;
+        }
+        if(cnt > n/2){
+            r = c;
+        }else{
+            r = -1;
+        }
+    }
+    return r;
+}
+
 int main(void)
 {
 	int i;
+    int k = 5;
+    int s;
 	int v[10] = {4, 9, 10, 2, 3, 8, 5, 1, 7, 6};
+    int t[10];
 	for (i = 0; i < 10; i++) printf("%d\t", v[i]);
-	quicksort(v, 0, 9);
+    memcpy(t, v, sizeof(int)*10);
+	//quicksort2(v, 0, 9);
+
+    for(k = 1; k <= 10; k++){
+        printf("\n");
+        memcpy(v, t, sizeof(int)*10);
+        selection(v, 0, 9, k);
+        printf("the %dth number: %d\n", k, v[select]);
+    }
 	printf("\n");
-	for (i = 0; i < 10; i++) printf("%d\t", v[i]);
+	//for (i = 0; i < 10; i++) printf("%d\t", v[i]);
+    printf("\n");
+
+    int x[] = {1, 5, 2, 5, 5, 3, 5};
+    printf("majority = %d\n", majority(x, 7));
 	return 0;
 }
 

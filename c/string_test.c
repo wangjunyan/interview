@@ -72,15 +72,22 @@ char* strncpy(char *dst, const char *src, int count)
 	return addr;
 }
 
-size_t strlen(const char *s)
+size_t strlen(const char *str)
 {
+/*
 	int length = 0;
 	while (s != '\0')
 	{
 		s++;
+        if(length < 25) printf("length=%d\n", length);
 	    length++;
 	}
 	return length;
+    */
+    const char *s;
+    for (s = str; *s; ++s)
+        ;
+    return (s - str);
 }
 
 void squeeze(char s[], char c)
@@ -153,6 +160,53 @@ void* memcpy(void *dst, const void *src, size_t num)
 	return dst;
 }
 
+void compute_next(char *s, int *next){
+    int i, j;
+    int m = strlen(s);
+    next[0] = -1;
+    next[1] = 0;
+    for(i = 2; i < m; i++){
+        j = next[i-1]+1;
+        while(s[i-1] != s[j-1] && j > 0){
+            j = next[j-1] + 1;
+        }
+        next[i] = j;
+    }
+}
+
+int kmp_search(char *a, char *b){
+    printf("111\n");
+    int n = strlen(a);
+    printf("222\n");
+    int m = strlen(b);
+    printf("len[%s] = %d\n", a, n);
+    printf("len[%s] = %d\n", b, m);
+    int *next = (int *)malloc(sizeof(int)*m);
+    compute_next(b, next);
+    int k = 0;
+    for(k=0; k<m; k++) printf("%d\t", next[k]);
+    int i = 0;
+    int j = 0;
+    int start = -1;
+    while(start==-1 && i<n){
+        if(b[j] == a[i]){
+            i++;
+            j++;
+        }else{
+            j = next[j];
+            if(j == -1){
+                j = 0;
+                i++;
+            }
+        }
+        if(j == m){
+            start = i - m;
+        }
+    }
+    return start;
+}
+
+
 int main(void)
 {
 	char s1[] = "123";
@@ -172,6 +226,19 @@ int main(void)
 	itoa(n2, s22); 
 	printf("%s\n", s21);
 	printf("%s\n", s22);
+    
+    printf("---------KMP-----------\n");
+    char *s4 = "xyxyyxyxyxx";
+    char *s5 = "xyxxyxyxyyxyxyxyyxyxyxx";
+    printf("match index : %d\n", kmp_search(s5, s4));
+    char *s6 = "AAAAAAAAAAAAAAAAAB";
+    char *s7 = "AAAAB";
+    printf("match index : %d\n", kmp_search(s6, s7));
+    //int next[12];
+    //int i;
+    //compute_next(s4, next, 11);
+    //for (i = 0; i < 11; i++) printf("%d\t", next[i]);
+    printf("\n");
 
 	return 0;
 }
