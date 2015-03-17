@@ -80,7 +80,7 @@ public class BinaryTree{
         Node lChild = new Node(1);
         Node rChild = new Node(3);
         root.left = lChild;
-        root.right = rChild;
+	root.right = rChild;
     }
 
     // Build 123 using only one pointer variable.
@@ -184,6 +184,18 @@ public class BinaryTree{
             current = current.left;
         }
         return current.data;
+    }
+
+    public int maxValue(){
+	return maxValue(root);
+    }
+
+    private int maxValue(Node node){
+	Node current = node;
+	while(current.right != null){
+	    current = current.right;
+	}
+	return current.data;
     }
 
     //Given a tree and a sum, returns true if there is a path from the root
@@ -363,9 +375,54 @@ public class BinaryTree{
             return false;
         }
     }
+    
+    //For the key values 1...numKeys, how many structurally unique
+    //binary search trees are possible that store those keys?
+    //Strategy: consider that each value could be the root. 
+    //Recursively find the size of the left and right subtrees.
+    public static int countTrees2(int numKeys){
+	if(numKeys <= 1) return 1;
+	else{
+	    //there will be one value at the root, with whatever remains
+   	    //on the left and right each forming their own subtrees. 
+	    //Iterate through all the values that could be the root...
+	    int sum = 0;
+	    int left, right, root;
+	    for(root = 1; root <= numKeys; root++){
+		left = countTrees2(root - 1);
+		right = countTrees2(numKeys-root);
+		// number of possible trees with this root == left*right 
+		sum += left*right;
+	    }
+	    return sum;
+	}
+    }
 
-    public int countTrees(int numKeys){
-        
+    public static void countTrees(int numKeys){
+	int[] counts = new int[numKeys+1];
+	counts[0] = 1;
+	counts[1] = 1;
+	for(int i = 2; i <= numKeys; i++){
+		int count = 0;
+		for(int j = 0; j < i; j++){
+			count += counts[j]*counts[i-1-j];
+		}
+		counts[i] = count;
+		System.out.println("countTrees " + i + " : " + count);
+	}
+    }
+
+
+    public boolean isBST1(){
+	return isBST1(root);
+    }
+
+    private boolean isBST1(Node node){
+	if(node == null) return true;
+	else if(node.left == null && node.right == null) return true;
+	else if(node.left != null && node.right == null) return ((node.data>=maxValue(node.left) && isBST1(node.left)));
+	else if(node.left == null && node.right != null) return ((node.data<=minValue(node.right) && isBST1(node.right)));
+	else return (node.data>=maxValue(node.left) && isBST1(node.left) && node.data<=minValue(node.right) && isBST1(node.right));
     }
 
     public void printByLevel(){
@@ -450,6 +507,29 @@ public class BinaryTree{
         t4.printPretty2();
         t4.mirror();
         t4.printPretty2();
+
+	countTrees(10);
+	for(int i = 1; i <=10; i++)
+	    System.out.println("countTrees2 " + i + " : " + countTrees2(i));
+	
+	initNodeArray();
+	BinaryTree t5 = new BinaryTree();
+	t5.root = nodeArray[5];
+	nodeArray[5].left = nodeArray[2];
+	nodeArray[5].right = nodeArray[7];
+	nodeArray[2].left = nodeArray[1];
+	nodeArray[2].right = nodeArray[6];
+	t5.printPretty2();
+	System.out.println("t5 is BST = " + t5.isBST1());
+
+	initNodeArray();
+	BinaryTree t6 = new BinaryTree();
+	t6.root = nodeArray[5];
+	nodeArray[5].left = nodeArray[2];
+	nodeArray[5].right = nodeArray[7];
+	nodeArray[2].left = nodeArray[1];
+	t6.printPretty2();
+	System.out.println("t6 is BST = " + t6.isBST1());
     }
 
 
