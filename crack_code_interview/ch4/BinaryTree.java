@@ -1,4 +1,8 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class BinaryTree{
+
     // Root node pointer. Will be null for an empty tree.
     private Node root;
 
@@ -274,6 +278,96 @@ public class BinaryTree{
         System.out.println();
     }
 
+    /*
+    Changes the tree into its mirror image.
+    So the tree... 
+          4 
+         / \ 
+        2   5
+       / \ 
+      1   3
+    is changed to
+           4
+          / \
+         5   2
+            / \ 
+           3   1
+    Uses a recursive helper that recurs over the tree, 
+    swapping the left/right pointers.
+    */
+    public void mirror(){
+        mirror(root);
+    }
+
+    private void mirror(Node node){
+        if(node == null) return;
+        // do the sub-trees
+        mirror(node.left);
+        mirror(node.right);
+        // swap the left/right pointers
+        Node tmp = node.left;
+        node.left = node.right;
+        node.right = tmp;
+    }
+
+    /*
+    For each node in a binary search tree, create a new duplicate node, 
+    and insert the duplicate as the left child of the original node. 
+    The resulting tree should still be a binary search tree.
+    Changes the tree by inserting a duplicate node on each nodes's .left.
+    So the tree... 
+        2 
+       / \ 
+      1   3
+    is changed to...
+           2 
+          / \ 
+         2   3 
+        /   / 
+       1   3 
+      / 
+     1
+    Uses a recursive helper to recur over the tree and insert the duplicates.
+    */
+    public void doubleTree(){
+        doubleTree(root);
+    }
+
+    private void doubleTree(Node node){
+        if(node != null){
+            doubleTree(node.left);
+            Node oldLeft = node.left;
+            Node newNode = new Node(node.data);
+            newNode.left = oldLeft;
+            newNode.right = null;
+            node.left = newNode;
+            doubleTree(node.right);
+        }
+    }
+
+    //Compares the receiver to another tree to see if they are structurally identical. 
+    public boolean sameTree(BinaryTree other){
+        return sameTree(root, other.root);
+    }
+
+    //Recursive helper -- recurs down two trees in parallel, checking to see if they are identical. 
+    private boolean sameTree(Node a, Node b){
+        //both empty -> true
+        //both non-empty -> compare them
+        //one empty, one not -> false
+        if(a==null && b==null){
+            return true;
+        }else if (a!=null && b!=null && a.data==b.data){ 
+            return (sameTree(a.left, b.left) && sameTree(a.right, b.right));
+        }else{
+            return false;
+        }
+    }
+
+    public int countTrees(int numKeys){
+        
+    }
+
     public void printByLevel(){
         if(root == null) return;
         LinkedQueue<Node> queue = new LinkedQueue<Node>();
@@ -299,15 +393,29 @@ public class BinaryTree{
         }
     }
 
+    private static Node[] nodeArray;
+    private static final int NODE_NUM = 20;
+    private static void initNodeArray(){
+        nodeArray = new Node[NODE_NUM];
+        for(int i = 0; i < NODE_NUM; i++){
+            nodeArray[i] = new Node(i);
+            nodeArray[i].left = null;
+            nodeArray[i].right = null;
+        }
+    }
 
     public static void main(String[] args){
         BinaryTree t1 = new BinaryTree();
         t1.build123a();
         t1.printTree();
+        t1.printPretty();
+        //t1.doubleTree();
+        //t1.printPretty();
 
         BinaryTree t2 = new BinaryTree();
         t2.build123b();
         t2.printTree();
+        System.out.println("t2 == t1 : " + t2.sameTree(t1));
 
         BinaryTree t3 = new BinaryTree();
         t3.build123c();
@@ -316,25 +424,17 @@ public class BinaryTree{
         System.out.println("maxDepth of t3 = " + t3.maxDepth());
         System.out.println("minValue of t3 = " + t3.minValue());
 
+        initNodeArray();
         BinaryTree t4 = new BinaryTree();
-        Node n5 = new Node(5);
-        Node n4 = new Node(4);
-        Node n8 = new Node(8);
-        Node n11 = new Node(11);
-        Node n13 = new Node(13);
-        Node n4_2 = new Node(4);
-        Node n7 = new Node(7);
-        Node n2 = new Node(2);
-        Node n1 = new Node(1);
-        t4.root = n5;
-        n5.left = n4;
-        n5.right = n8;
-        n4.left = n11;
-        n8.left = n13;
-        n8.right = n4_2;
-        n11.left = n7;
-        n11.right = n2;
-        n4_2.right = n1;
+        t4.root = nodeArray[5];
+        nodeArray[5].left = nodeArray[4];
+        nodeArray[5].right = nodeArray[8];
+        nodeArray[4].left = nodeArray[11];
+        nodeArray[8].left = nodeArray[13];
+        nodeArray[8].right = nodeArray[6];
+        nodeArray[11].left = nodeArray[7];
+        nodeArray[11].right = nodeArray[2];
+        nodeArray[6].right = nodeArray[1];
         t4.printTree();
         System.out.println("t4.hasPathSum(27) = " + t4.hasPathSum(27));
         System.out.println("t4.hasPathSum(22) = " + t4.hasPathSum(22));
@@ -347,5 +447,91 @@ public class BinaryTree{
         t4.printPaths();
         System.out.println("print by level:");
         t4.printByLevel();
+        t4.printPretty2();
+        t4.mirror();
+        t4.printPretty2();
+    }
+
+
+    private static int WIDTH = 2;
+    public void printPretty(){
+        int maxLevel = maxDepth();
+        List<Node> nodes = new ArrayList<Node>();
+        nodes.add(root);
+        printPretty(nodes, 1, maxLevel);
+    }
+
+    private void printPretty(List<Node> nodes, int level, int maxLevel){
+        if(nodes.isEmpty() || isAllElementNull(nodes)) return;
+        int floor = maxLevel - level;
+        int endgeLines = (int) Math.pow(2, (Math.max(floor - 1, 0)));
+        int firstSpaces = (int) Math.pow(2, (floor)) - 1;
+        int betweenSpaces = (int) Math.pow(2, (floor + 1)) - 1;
+        printWhiteSpaces(firstSpaces*WIDTH);
+        List<Node> newNodes = new ArrayList<Node>();
+        for(Node node : nodes){
+            if(node != null){
+                System.out.printf("%2d", node.data);
+                newNodes.add(node.left);
+                newNodes.add(node.right);
+            }else{
+                printWhiteSpaces(WIDTH);
+                newNodes.add(null);
+                newNodes.add(null);
+            }
+            printWhiteSpaces(betweenSpaces*WIDTH);
+        }
+        System.out.println();
+        for (int i = 1; i <= endgeLines; i++){
+            for (int j = 0; j < nodes.size(); j++){
+                printWhiteSpaces((firstSpaces - i)*WIDTH);
+                if (nodes.get(j) == null) {
+                    printWhiteSpaces((endgeLines + endgeLines + i + 1)*WIDTH);
+                    continue;
+                }
+                if (nodes.get(j).left != null) System.out.print(" /");
+                else printWhiteSpaces(WIDTH);
+                printWhiteSpaces((i + i - 1)*WIDTH);
+                if (nodes.get(j).right != null) System.out.print(" \\");
+                else printWhiteSpaces(WIDTH);
+                printWhiteSpaces((endgeLines + endgeLines - i)*WIDTH);
+            }
+            System.out.println();
+        }
+        printPretty(newNodes, level+1, maxLevel);
+    }
+
+    private static void printWhiteSpaces(int count){
+        for(int i = 0; i < count; i++){
+            System.out.print(" ");
+        }
+    }
+
+    private static <T> boolean isAllElementNull(List<T> list){
+        for(Object obj : list){
+            if(obj != null) return false;
+        }
+        return true;
+    }
+
+
+    private static String UP = "\u2514\u2500\u2500 ";
+    private static String DOWN = "\u250c\u2500\u2500 ";
+    private static String VERT = "\u2502   ";
+    private static String EMPT = "    ";
+    private void printPretty2(Node node, String prefix, boolean isTail){
+        if(node.right != null){
+            printPretty2(node.right, prefix + (isTail ? VERT : EMPT), false);
+        }
+        System.out.println(prefix + (isTail ? UP : DOWN) + node.data);
+        if(node.left != null){
+            printPretty2(node.left, prefix + (isTail ? EMPT : VERT), true);
+        }
+    }
+
+    public void printPretty2(){
+        if(root != null){
+            printPretty2(root, "", true);
+        }
     }
 }
