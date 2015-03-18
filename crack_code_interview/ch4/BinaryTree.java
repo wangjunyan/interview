@@ -176,9 +176,14 @@ public class BinaryTree{
     //because in the worst case the height of the tree may go up to n. If that is the case, stack space will eventually 
     //run out and your program will crash.
     //Given a binary search tree, print the elements in-order iteratively without using recursion.
+	//First, the current pointer is initialized to the root. Keep traversing to its left child while pushing visited nodes 
+	//onto the stack. When you reach a NULL node (ie, you’ve reached a leaf node), you would pop off an element from the stack 
+	//and set it to current. Now is the time to print current’s value. Then, current is set to its right child and repeat the 
+	//process again. When the stack is empty, this means you’re done printing.
     public void printInOrderIter(){
         Stack<Node> s = new Stack<Node>();
         Node current = root;
+		/*
         do{
             while(current!=null){
                 s.push(current);
@@ -188,8 +193,64 @@ public class BinaryTree{
             System.out.print(current.data + " ");
             current = current.right;
         }while(!s.isEmpty() || current!=null);
+		*/
+		//The last traversed node must not have a right child.
+		while(!s.isEmpty() || current!=null){
+			if(current != null){
+				s.push(current);
+				current = current.left;
+			}else{
+				current = s.pop();
+				System.out.print(current.data + " ");
+				current = current.right;
+			}
+		}
         System.out.println();
     }
+	
+	/*
+	Using Morris Traversal, we can traverse the tree without using stack and recursion. The idea of Morris Traversal is 
+	based on Threaded Binary Tree. In this traversal, we first create links to Inorder successor and print the data using 
+	these links, and finally revert the changes to restore original tree.
+	1. Initialize current as root 
+	2. While current is not NULL
+	   If current does not have left child
+	     a) Print current’s data
+		 b) Go to the right, i.e., current = current->right
+	   Else
+		 a) Make current as right child of the rightmost node in current's left subtree
+		 b) Go to this left child, i.e., current = current->left
+	Although the tree is modified through the traversal, it is reverted back to its original shape after the completion. 
+	Unlike Stack based traversal, no extra space is required for this traversal.
+
+	*/
+	public void printInOrderMorris(){
+		Node curr = root;
+		Node prev = null;
+		while(curr != null){
+			if(curr.left == null){
+				System.out.print(curr.data + " ");
+				curr = curr.right;
+			}else{
+				//Find the inorder predecessor of current
+				prev = curr.left;
+				while(prev.right != null && prev.right!=curr) prev = prev.right;
+				//Make current as right child of its inorder predecessor
+				if(prev.right == null){
+					prev.right = curr;
+					curr = curr.left;
+				}
+				//Revert the changes made in if part to restore the original tree i.e., fix the right child of predecssor
+				else{
+					prev.right = null;
+					System.out.print(curr.data + " ");
+					curr = curr.right;
+				}
+			}
+		}
+		System.out.println();
+	}
+
     /*
     Given a binary tree, print out the nodes of the tree according to a bottom-up "postorder" traversal 
     -- both subtrees of a node are printed out completely before the node itself is printed, 
@@ -211,6 +272,98 @@ public class BinaryTree{
         printPostOrder(node.right);
         System.out.println(node.data + " ");
     }
+
+	//We use a prev variable to keep track of the previously-traversed node. Let’s assume curr is the current 
+	//node that’s on top of the stack. When prev is curr‘s parent, we are traversing down the tree. In this case, 
+	//we try to traverse to curr‘s left child if available (ie, push left child to the stack). If it is not available, 
+	//we look at curr‘s right child. If both left and right child do not exist (ie, curr is a leaf node), 
+	//we print curr‘s value and pop it off the stack.
+	//If prev is curr‘s left child, we are traversing up the tree from the left. We look at curr‘s right child. 
+	//If it is available, then traverse down the right child (ie, push right child to the stack), otherwise print 
+	//curr‘s value and pop it off the stack.
+	//If prev is curr‘s right child, we are traversing up the tree from the right. In this case, 
+	//we print curr‘s value and pop it off the stack.
+	public void printPostOrderIter(){
+		if(root == null) return;
+		Stack<Node> s = new Stack<Node>();
+		s.push(root);
+		Node prev = null;
+		Node curr = null;
+		while(!s.isEmpty()){
+			curr = s.peek();
+			/*
+			//we are traversing down the tree
+			if(prev==null || prev.left==curr || prev.right==curr){
+				if(curr.left != null){
+					s.push(curr.left);
+				}else if(curr.right != null){
+					s.push(curr.right);
+				}else{
+					System.out.print(curr.data + " ");
+					s.pop();
+				}
+			}
+			//we are traversing up the tree from the left
+			else if(curr.left == prev){
+				if(curr.right != null){
+					s.push(curr.right);
+				}else{
+					System.out.print(curr.data + " ");
+					s.pop();
+				}
+			}
+			//we are traversing up the tree from the right
+			else if(curr.right == prev){
+				System.out.print(curr.data + " ");
+				s.pop();
+			}
+			*/
+			if(prev==null || prev.left==curr || prev.right==curr){
+				if(curr.left != null) s.push(curr.left);
+				else if(curr.right != null) s.push(curr.right);
+			}else if(curr.left == prev){
+				if(curr.right != null) s.push(curr.right);
+			}else{
+				System.out.print(curr.data + " ");
+				s.pop();
+			}
+			prev = curr;
+		}
+		System.out.println();
+	}
+
+	//An alternative solution is to use two stacks. in fact it is doing a reversed pre-order traversal. That is, 
+	//the order of traversal is a node, then its right child followed by its left child. This yields post-order traversal in 
+	//reversed order. Using a second stack, we could reverse it back to the correct order.
+	//(1)Push the root node to the first stack.
+	//(2)Pop a node from the first stack, and push it to the second stack.
+	//(3)Then push its left child followed by its right child to the first stack.
+	//(4)Repeat step 2) and 3) until the first stack is empty.
+	//(5)Once done, the second stack would have all the nodes ready to be traversed in post-order. 
+	//...Pop off the nodes from the second stack one by one and you’re done.
+	/*
+	The two-stack solution takes up more space compared to the first solution using one stack. In fact, the first solution has 
+	a space complexity of O(h), where h is the maximum height of the tree. The two-stack solution however, has a space 
+	complexity of O(n), where n is the total number of nodes.
+	*/
+	public void printPostOrderIter2(){
+		if(root == null) return;
+		Stack<Node> s = new Stack<Node>();
+		Stack<Node> output = new Stack<Node>();
+		s.push(root);
+		Node curr;
+		while(!s.isEmpty()){
+			curr = s.peek();
+			output.push(curr);
+			s.pop();
+			if(curr.left != null) s.push(curr.left);
+			if(curr.right != null) s.push(curr.right);
+		}
+		while(!output.isEmpty()){
+			System.out.print(output.pop().data + " ");
+		}
+		System.out.println();
+	}
 
     //Returns the number of nodes in the tree.
     //Uses a recursive helper that recurs down the tree and counts the nodes.
@@ -638,6 +791,12 @@ public class BinaryTree{
         t4.printTree();
         System.out.println("print t4 in-order iteratively:");
         t4.printInOrderIter();
+		t4.printInOrderMorris();
+		System.out.println("print t4 post-order:");
+		t4.printPostOrder();
+		System.out.println("print t4 post-order iteratively:");
+		t4.printPostOrderIter();
+		t4.printPostOrderIter2();
 
         countTrees(10);
         for(int i = 1; i <=10; i++)
