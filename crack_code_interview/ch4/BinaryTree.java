@@ -1,10 +1,8 @@
 import java.util.*;
-
 public class BinaryTree{
 
     // Root node pointer. Will be null for an empty tree.
     private Node root;
-
     /* 
     --Node-- 
     The binary tree is built using this nested node class. 
@@ -808,6 +806,89 @@ public class BinaryTree{
         }
     }
 
+    /*
+    To understand what's same vertical line, we need to define horizontal distances first. If two nodes have the same 
+    Horizontal Distance (HD), then they are on same vertical line. The idea of HD is simple. HD for root is 0, a right edge 
+    (edge connecting to right subtree) is considered as +1 horizontal distance and a left edge is considered as -1 horizontal distance. 
+    */
+    public void printByHD(){
+        int minhd = minHD();
+        int maxhd = maxHD();
+        System.out.println("array list size = " + (maxhd-minhd+1));
+        ArrayList<ArrayList<Node>> hdList = new ArrayList<ArrayList<Node>>(maxhd-minhd+1);
+        for(int i = 0; i < maxhd-minhd+1; i++) hdList.add(new ArrayList<Node>());
+        printByHD(hdList, root, 0-minhd);
+        for(int i = 0; i < maxhd-minhd+1; i++){
+            for(Node node : hdList.get(i)) System.out.print(node.data + " ");
+            System.out.println();
+        }
+    }
+
+    private void printByHD(ArrayList<ArrayList<Node>> hdList, Node node, int pos){
+        hdList.get(pos).add(node);
+        if(node.left != null) printByHD(hdList, node.left, pos-1);
+        if(node.right != null) printByHD(hdList, node.right, pos+1);
+    }
+
+    public int minHD(){
+        return minHD(root, 0);
+    }
+
+    private int minHD(Node node, int hd){
+        int mhd = hd;
+        if(node.left != null){
+            mhd = Math.min(minHD(node.left, hd-1), mhd);
+        }
+        if(node.right != null){
+            mhd = Math.min(minHD(node.right, hd+1), mhd);
+        }
+        return mhd;
+    }
+
+    public int maxHD(){
+        return maxHD(root, 0);
+    }
+
+    private int maxHD(Node node, int hd){
+        int mhd = hd;
+        if(node.left != null){
+            mhd = Math.max(maxHD(node.left, hd-1), mhd);
+        }
+        if(node.right != null){
+            mhd = Math.max(maxHD(node.right, hd+1), mhd);
+        }
+        return mhd;
+    }
+
+    /*
+    Time complexity of above algorithm is O(w*n) where w is width of Binary Tree and n is number of nodes in Binary Tree. 
+    In worst case, the value of w can be O(n) (consider a complete tree for example) and time complexity can become O(n^2).
+    */
+    public void printVerticalLine(){
+        int min = minHD();
+        int max = maxHD();
+        for(int line = min; line <= max; line++){
+            printVerticalLine(root, line, 0);
+            System.out.println();
+        }
+    }
+
+    private void printVerticalLine(Node node, int line, int hd){
+        if(node == null) return;
+        if(line == hd) System.out.print(node.data + " ");
+        printVerticalLine(node.left, line, hd-1);
+        printVerticalLine(node.right, line, hd+1);
+    }
+
+    //Describe an algorithm to save a Binary Search Tree (BST) to a file in terms of run-time and disk space complexity. 
+    //You must be able to restore to the exact original BST using the saved format.
+    /*
+    When we encounter a new node to insert, we should always place it into the first empty space which it will fit using 
+    a pre-order traversal. How do we determine the first empty space which a node will fit in? We can use the ordinary BST 
+    insertion algorithm, but the run-time complexity will be O(n lg n), since inserting a node takes O(lg n) time. Not efficient enough!
+    */
+
+
     private static Node[] nodeArray;
     private static final int NODE_NUM = 20;
     private static void initNodeArray(){
@@ -916,15 +997,26 @@ public class BinaryTree{
         nodeArray[2].right = nodeArray[3];
         nodeArray[6].left = nodeArray[5];
         nodeArray[6].right = nodeArray[7];
+        nodeArray[5].right = nodeArray[8];
+        nodeArray[8].right = nodeArray[9];
+        nodeArray[9].right = nodeArray[10];
+        nodeArray[8].left = nodeArray[11];
+        nodeArray[11].left = nodeArray[12];
+        nodeArray[12].left = nodeArray[13];
+        nodeArray[13].left = nodeArray[14];
         t7.printPretty2();
-        t7.printTree();
-        Node head = t7.treeToListRecur();
-        System.out.print(head.data + " ");
-        for(Node n = head.right; n != head; n=n.right) System.out.print(n.data + " ");
-        System.out.println();
-        System.out.print(head.data + " ");
-        for(Node n = head.left; n != head; n=n.left) System.out.print(n.data + " ");
-        System.out.println();
+        t7.printVerticalLine();
+        System.out.println("min hd = " + t7.minHD());
+        System.out.println("max hd = " + t7.maxHD());
+        t7.printByHD();
+        //t7.printTree();
+        //Node head = t7.treeToListRecur();
+        //System.out.print(head.data + " ");
+        //for(Node n = head.right; n != head; n=n.right) System.out.print(n.data + " ");
+        //System.out.println();
+        //System.out.print(head.data + " ");
+        //for(Node n = head.left; n != head; n=n.left) System.out.print(n.data + " ");
+        //System.out.println();
     }
 
 
