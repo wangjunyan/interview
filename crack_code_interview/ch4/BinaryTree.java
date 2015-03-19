@@ -252,6 +252,90 @@ public class BinaryTree{
 	}
 
     /*
+    Write a recursive function treeToList(Node root) that takes an ordered binary tree and rearranges the internal pointers 
+    to make a circular doubly linked list out of the tree nodes. The "previous" pointers should be stored in the "small" field 
+    and the "next" pointers should be stored in the "large" field. The list should be arranged so that the nodes are in increasing order. 
+    Return the head pointer to the new list. The operation can be done in O(n) time -- essentially operating on each node once.
+    */
+    public Node treeToList(){
+        Node curr;
+        Node head = null;
+        Node tail = null;
+        curr = root;
+        while(curr != null){
+            if(curr.left == null) break;
+            else{
+                head = curr.left;
+                while(head.right != null && head.right != curr) head=head.right;
+                if(head.right == null){
+                    head.right = curr;
+                    curr = curr.left;
+                }
+            }
+        }
+        System.out.println("head = " + head.data);
+        curr = root;
+        while(curr != null){
+            if(curr.right == null) break;
+            else{
+                tail = curr.right;
+                while(tail.left != null && tail.left != curr) tail=tail.left;
+                if(tail.left == null){
+                    tail.left = curr;
+                    curr = curr.right;
+                }
+            }
+        }
+        System.out.println("tail = " + tail.data);
+        for(curr=head; curr!=root; curr=curr.right) curr.right.left = curr;
+        for(curr=tail; curr!=root; curr=curr.left) curr.left.right = curr;
+        tail.right = head;
+        head.left = tail;
+        return head;
+    }
+
+    //helper function -- given two list nodes, join them together so the second immediately follow the first.
+    //Sets the .next of the first and the .previous of the second.
+    public static void join(Node a, Node b){
+        a.right = b;
+        b.left = a;
+    }
+
+    //helper function -- given two circular doubly linked lists, append them and return the new list.
+    public static Node append(Node a, Node b){
+        if(a == null) return b;
+        if(b == null) return a;
+        Node aLast = a.left;
+        Node bLast = b.left;
+        join(aLast, b);
+        join(bLast, a);
+        return a;
+    }
+    
+    public Node treeToListRecur(){
+        return treeToListRecur(root);
+    }
+
+    //Given an ordered binary tree, recursively change it into a circular doubly linked list which is returned.
+    private Node treeToListRecur(Node node){
+        // base case: empty tree -> empty list
+        if(node == null) return null;
+        // Recursively do the subtrees (leap of faith!)
+        Node aList = treeToListRecur(node.left);
+        Node bList = treeToListRecur(node.right);
+
+        // Make the single root node into a list length-1 in preparation for the appending
+        node.right = node;
+        node.left = node;
+
+        //At this point we have three lists, and it's just a matter of appending them together in the right order (aList, root, bList)
+        aList = append(aList, node);
+        aList = append(aList, bList);
+        
+        return aList;
+    }
+
+    /*
     Given a binary tree, print out the nodes of the tree according to a bottom-up "postorder" traversal 
     -- both subtrees of a node are printed out completely before the node itself is printed, 
     and each left subtree is printed before the right subtree. 
@@ -822,6 +906,25 @@ public class BinaryTree{
         t6.printPretty2();
         System.out.println("t6 is BST = " + t6.isBST1());
         System.out.println("t6 is BST2 = " + t6.isBST2());
+
+        initNodeArray();
+        BinaryTree t7 = new BinaryTree();
+        t7.root = nodeArray[4];
+        nodeArray[4].left = nodeArray[2];
+        nodeArray[4].right = nodeArray[6];
+        nodeArray[2].left = nodeArray[1];
+        nodeArray[2].right = nodeArray[3];
+        nodeArray[6].left = nodeArray[5];
+        nodeArray[6].right = nodeArray[7];
+        t7.printPretty2();
+        t7.printTree();
+        Node head = t7.treeToListRecur();
+        System.out.print(head.data + " ");
+        for(Node n = head.right; n != head; n=n.right) System.out.print(n.data + " ");
+        System.out.println();
+        System.out.print(head.data + " ");
+        for(Node n = head.left; n != head; n=n.left) System.out.print(n.data + " ");
+        System.out.println();
     }
 
 
